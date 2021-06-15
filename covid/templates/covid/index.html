@@ -1,0 +1,76 @@
+{% extends "covid/base.html" %}
+{% load static covid_tags %}
+
+{% block stylesheet %}
+    <link rel="stylesheet" type="text/css" href="{% static 'covid/genomes-table.css' %}">
+{% endblock stylesheet %}
+
+{% block headertitle %}
+    GENOMES
+{% endblock headertitle %}
+
+{% block content %}
+<section class="item content">
+<div class="container toparea">
+	<div class="underlined-title">
+		<div class="editContent">
+			<h1 class="text-center latestitems"> Genomes Database </h1>
+		</div>
+		<div class="wow-hr type_short">
+			<span class="wow-hr-h">
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			</span>
+		</div>
+	</div>
+    <div class="row">
+        <div class="col-md-9 container-table">
+            <ul class="responsive-table">
+                <li class="table-header">
+                  <div class="col col-1">Accession</div>
+                  <div class="col col-2">Host</div>
+                  <div class="col col-3">Country</div>
+                  <div class="col col-4">Collection Date</div>
+                  <div class="col col-5">Fasta Sequence</div>
+                </li>
+
+                {% for item in Page %}
+                <li class="table-row">
+                  <div class="col col-1" data-label="Accession">{{ item.Accession }}</div>
+                  <div class="col col-2" data-label="Host">{{ item.Host }}</div>
+                  <div class="col col-3" data-label="Country">{{ item.Country }}</div>
+                  <div class="col col-4" data-label="Collection Date">{{ item.CollectionDate }}</div>
+                  <div class="col col-5" data-label="Fasta Sequence"> <a href="{% url 'details' item.Accession %}"> See details </a></div>
+                </li>
+                {% endfor %}
+            </ul>
+            <div style="display: flex; justify-content: space-between">
+                <div style="order: 3;">
+                {% if Page.has_previous %}
+                    <a style="padding-right: 15px;" href="{% relative_url 'page' Page.previous_page_number request.GET.urlencode %}">Previous Page</a>
+                {% endif %}
+                {% if Page.has_next %}
+                    <a style="padding-right: 5px" href="{% relative_url 'page' Page.next_page_number request.GET.urlencode %}">Next Page</a>
+                {% endif %}
+                </div>
+                <div style="text-align: center; order: 2;"> {{ Page.number }} of {{ Page.paginator.num_pages }}</div>
+                <span style="order:1;">Total results: {{ Page.paginator.count }}</span>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+		<div class="btn btn-buynow">Filters</div>
+			<div class="properties-box">
+    		    <form method="get">
+    		        {{ Form.form.as_p }}
+    		        <p></p>
+    		        <input type="submit" class="clearfix btn" value="Filter">
+    		    </form>
+			</div>
+		</div>
+    </div>
+
+</div>
+</section>
+{% endblock content %}

@@ -1,0 +1,104 @@
+{% extends "covid/base.html" %}
+{% load static %}
+
+{% block stylesheet %}
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.css" rel="stylesheet">
+<style>
+#map { width:100%; height: 100%; min-width: 600px; min-height: 600px;}
+</style>
+{% endblock stylesheet %}
+
+{% block headertitle %}
+    Covid-19 Map
+{% endblock headertitle %}
+
+{% block content %}
+<section class="item content">
+    <div class="container toparea">
+    	<div class="underlined-title">
+    		<div class="editContent">
+    			<h1 class="text-center latestitems">Covid Worldwide Live Map</h1>
+    		</div>
+    		<div class="wow-hr type_short">
+    			<span class="wow-hr-h">
+    			<i class="fa fa-star"></i>
+    			<i class="fa fa-star"></i>
+    			<i class="fa fa-star"></i>
+    			</span>
+    		</div>
+    	</div>
+    	<div class="row">
+    		<div class="col-lg-10 col-lg-offset-1">
+    		    <div id="map"></div>
+    		</div>
+    	</div>
+    	<div style="margin-top: 25px;" class="row">
+    	    <div class="col-lg-10 col-lg-offset-1">
+    	        <div style="display: flex; justify-content: space-between;">
+    	            <div style="display: inline-block; margin: auto; padding-bottom: 10px;">number of confirmed cases</div>
+    	       </div>
+    	        <div style="display: flex; justify-content: space-between; padding-left: 25px; padding-right: 25px;">
+    	            <div style='width:25px; height: 25px; background: red; display: inline-block;'> </div><div> > 1 000 000</div>
+    	             <div style='width:25px; height: 25px; background: #ff4b0d; display: inline-block;'> </div><div> > 500 000</div>
+    	             <div style='width:25px; height: 25px; background: orange; display: inline-block;'> </div><div> > 200 000</div>
+    	             <div style='width:25px; height: 25px; background: yellow; display: inline-block;'> </div><div> > 100 000</div>
+    	             <div style='width:25px; height: 25px; background: blue; display: inline-block;'> </div><div> > 50 000</div>
+    	             <div style='width:25px; height: 25px; background: #00ff00; display: inline-block;'> </div><div> > 0</div>
+    	       </div>
+    	   </div>
+    	</div>
+    </div>
+</section>
+{% endblock content %}
+
+{% block script %}
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.js"></script>
+<script src="https://unpkg.com/es6-promise@4.2.4/dist/es6-promise.auto.min.js"></script>
+<script src="https://unpkg.com/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
+
+<script>
+	mapboxgl.accessToken = 'pk.eyJ1IjoicmFuZG9tdXNlcm5hbWUwMDAwIiwiYSI6ImNrcG13YTUwdTA2ZDIyb251M3lka3lscnMifQ.ZZW8wfPmtlw52_eJPPNjpQ';
+	var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
+	var map = new mapboxgl.Map({
+		container: 'map',
+		style: 'mapbox://styles/mapbox/dark-v10',
+		zoom: 4,
+		center: [20,50]
+		});
+
+	fetch("https://api.covid19api.com/summary")
+		.then(response => response.json())
+			.then(data => {
+				const Countries = data['Countries'];
+
+				Countries.forEach(node => {
+					mapboxClient.geocoding.forwardGeocode({query: node['Country'], autocomplete: true})
+						.send()
+						.then(function (response) {
+							if (response && response.body && response.body.features && response.body.features.length)
+							{
+								const colorL = cases => {
+									if(cases >= 1000000)
+										return "red";
+									else if(cases >= 500000)
+										return "#ff4b0d";
+									else if(cases >= 200000)
+										return "orange";
+									else if(cases >= 100000)
+										return "yellow";
+									else if(cases >= 50000)
+										return "blue";
+									else return "#00ff00";
+								}
+								const feature = response.body.features[0];
+								// Create a marker and add it to the map.
+								new mapboxgl.Marker({color: colorL(node['TotalConfirmed'])})
+									.setLngLat(feature.center)
+									.setPopup(new mapboxgl.Popup({closeButton: false, closeOnMove: true}).setHTML('Confirmed Cases: ' + node['TotalConfirmed'] + '</br>Total Deaths: ' + node['TotalDeaths'] + '</br>Total Recovered: ' + node['TotalRecovered']))
+									.addTo(map);
+							}
+						});
+				});
+			});
+</script>
+{% endblock script %}
